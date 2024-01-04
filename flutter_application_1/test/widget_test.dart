@@ -6,25 +6,69 @@
 // tree, read text, and verify that the values of widget properties are correct.
 
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/viewmodels/game_model.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_application_1/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('gameModel Tests', () {
+    test('Initial gameModel state', () {
+      final gameModel = GameModel();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+      expect(gameModel.timerSeconds, 5);
+      expect(gameModel.score, 0);
+      expect(gameModel.attempts, 0);
+      expect(gameModel.randomNumber, 0);
+      expect(gameModel.isSuccess, false);
+      expect(gameModel.isFailure, false);
+      expect(gameModel.failureMessage, '');
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('Tap on Widget 5 increments attempts', () {
+      final gameModel = GameModel();
+      final initialAttempts = gameModel.attempts;
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      gameModel.onTap();
+
+      expect(gameModel.attempts, initialAttempts + 1);
+    });
+
+    test('Correct guess increments score', () async {
+      final gameModel = GameModel();
+      final initialScore = gameModel.score;
+
+      // gameModel.generateRandomNumber();
+      await gameModel.onTap(); // Simulate a correct guess
+
+      expect(gameModel.score, initialScore + 1);
+      expect(gameModel.isSuccess, true);
+    });
+
+    test('Incorrect guess triggers failure', () async {
+      final gameModel = GameModel();
+      final initialAttempts = gameModel.attempts;
+
+      gameModel.generateRandomNumber();
+      await gameModel.onTap(); // Simulate an incorrect guess
+
+      expect(gameModel.isFailure, true);
+      expect(gameModel.attempts, initialAttempts + 1);
+    });
+
+    test('Timeout triggers failure', () async {
+      final gameModel = GameModel();
+      final initialAttempts = gameModel.attempts;
+
+      // Simulate a timeout
+      while (gameModel.timerSeconds > 0) {
+        await Future.delayed(const Duration(seconds: 1));
+      }
+
+      expect(gameModel.isFailure, true);
+      expect(gameModel.attempts, initialAttempts + 1);
+    });
+
+    
   });
 }
